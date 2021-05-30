@@ -3,7 +3,7 @@ from _thread import *
 from client import Ship
 import pickle
 
-server = "61.72.91.86"
+server = "0.0.0.0"
 port = 5555
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
