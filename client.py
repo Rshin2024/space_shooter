@@ -200,7 +200,7 @@ while True:
 
     health_list = [_0_health, _1_health, _2_health, _3_health, _4_health, _5_health, _6_health, _7_health, _8_health, _9_health, _10_health, _11_health, _12_health, full_health]
 
-    screen.blit(health_list[health], (-91, -130))
+    screen.blit(health_list[p.health], (-91, -130))
 
     p.update()
     p2.update()
