@@ -1,6 +1,7 @@
 import time
 import pygame
 import sys
+import math
 from network import Network
 
 pygame.init()
