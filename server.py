@@ -18,11 +18,15 @@ print("Waiting for a connection, Server Started")
 
 
 
+
 players = [Ship(), Ship()]
 
+
 def threaded_client(conn, player):
+    b = []
     conn.send(pickle.dumps(players[player]))
     reply = ""
+
     while True:
         try:
             data = pickle.loads(conn.recv(2048))
@@ -48,6 +52,7 @@ def threaded_client(conn, player):
     conn.close()
 
 currentPlayer = 0
+
 while True:
     conn, addr = s.accept()
     print("Connected to:", addr)
