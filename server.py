@@ -1,6 +1,6 @@
 import socket
 from _thread import *
-from client import Ship
+from player import Ship
 import pickle
 
 server = "0.0.0.0"
@@ -18,7 +18,6 @@ print("Waiting for a connection, Server Started")
 
 
 
-
 players = [Ship(), Ship()]
 
 
@@ -29,7 +28,7 @@ def threaded_client(conn, player):
 
     while True:
         try:
-            data = pickle.loads(conn.recv(2048))
+            data = pickle.loads(conn.recv(2048*100))
             players[player] = data
 
             if not data:
