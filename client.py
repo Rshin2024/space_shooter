@@ -1,8 +1,9 @@
 import time
 import pygame
 import sys
-import math
 from network import Network
+import math
+from player import Ship
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -40,81 +41,6 @@ _2_health = pygame.transform.scale(pygame.image.load('pixil-frame-0 (10).png').c
 _1_health = pygame.transform.scale(pygame.image.load('pixil-frame-0 (11).png').convert_alpha(), (500, 500))
 _0_health = pygame.transform.scale(pygame.image.load('pixil-frame-0 (12).png').convert_alpha(), (500, 500))
 
-class Ship:
-
-    def __init__(self):
-        self.image = ship_image
-        self.rect = self.image.get_rect(center=(screen_width / 2, screen_height / 2))
-
-        # r is essentially the speed
-        self.r = 1
-        self.acc = 0.1
-
-        # dy is the change in y, and dx is the change in x
-        self.dy = 0
-        self.dx = 0
-        self.prev_x, self.prev_y = screen_width / 2, screen_height / 2
-        self.health = 13
-
-    def update(self):
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        # finds the distance between the current ship position and mouse
-        rel_x, rel_y = mouse_x - (self.prev_x), mouse_y - (self.prev_y)
-
-        # finds radians using arctan, then converts to degrees.
-        self.angle = -(180 / math.pi) * math.atan2(rel_y, rel_x)
-
-        # rotates ship according to the angle -- angle is also adjusted because it was previously crooked
-        self.image = pygame.transform.rotate(self.image, int(self.angle) - 90)
-
-        # 'moves' the ship, meaning that dx and dy (found in move()) are added to the position
-        self.rect = self.image.get_rect(center=(self.prev_x + self.dx, self.prev_y - self.dy))
-        if moving:
-            self.prev_x += self.dx
-            self.prev_y -= self.dy
-
-    def move(self):
-        # makes sure the ship does not go too fast
-        if self.r < 7:
-            self.r += self.acc
-
-        # Use the trig formula y/r=cos(theta) and x/r=sin(theta) to find dx and dy.
-        self.dy = self.r * math.sin(math.radians(self.angle))
-        self.dx = self.r * math.cos(math.radians(self.angle))
-
-    def create_bullet_object(self):
-        # returns Bullet object with the ship position and mouse position at the time  the mouse was clicked
-        return Bullet(self.prev_x, self.prev_y, pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
-
-    def create_bullet(self):
-
-        self.bullet_group = []
-        self.bullet_group.append(self.create_bullet_object())
-
-
-    class Bullet:
-        def __init__(self, prev_x, prev_y, mouse_x, mouse_y):
-            super().__init__()
-            # same logic as ship.update() and ship.move(), except that rel_x, rel_y, and angle are constant
-            self.x = prev_x
-            self.y = prev_y
-            rel_x, rel_y = mouse_x - self.x, mouse_y - self.y
-            self.angle = ((180 / math.pi) * math.atan2(rel_x, rel_y)) / 55
-            self.image = pygame.transform.rotate(bullet_image, self.angle + 90)
-            self.rect = self.image.get_rect(center=(self.x, self.y))
-            self.r = 2
-            self.acc = 15
-            self.dx = 0
-            self.dy = 0
-
-        def bullet_update(self):
-            self.r += self.acc
-            self.dx = self.r * math.cos(self.angle + 180 + 0.7)
-            self.dy = self.r * math.sin(self.angle + 180 + 0.7)
-            self.rect = self.image.get_rect(center=(self.x + self.dx, self.y - self.dy))
-            #if self.rect.x >= screen_height + 300:
-            #   self.kill()
-
 
 bg = pygame.image.load("space_background.png").convert()
 bg = pygame.transform.scale2x(bg)
@@ -125,12 +51,15 @@ bullet_num = 0
 ammo = 4
 bullet_time = 0
 bullet_group = 0
+print("hello!")
 n = Network()
 p = n.getP()
 
 while True:
+    print("is this working?")
 
     p2 = n.send(p)
+    print("Maybe?")
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
