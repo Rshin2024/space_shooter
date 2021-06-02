@@ -41,81 +41,109 @@ _2_health = pygame.transform.scale(pygame.image.load('pixil-frame-0 (10).png').c
 _1_health = pygame.transform.scale(pygame.image.load('pixil-frame-0 (11).png').convert_alpha(), (500, 500))
 _0_health = pygame.transform.scale(pygame.image.load('pixil-frame-0 (12).png').convert_alpha(), (500, 500))
 
+my_font = pygame.font.Font('slkscr.ttf', 100)
 
 bg = pygame.image.load("space_background.png").convert()
 bg = pygame.transform.scale2x(bg)
-shooting = False
 space = False
-moving = False
 bullet_num = 0
 ammo = 4
 bullet_time = 0
 bullet_group = 0
+converted_list = []
+converted_list2 = []
 print("hello!")
+
 n = Network()
 p = n.getP()
 
+class Convert:
+
+    def __init__(self, image, angle, rect):
+
+        self.image = image
+        self.image = pygame.transform.rotate(self.image, angle-90)
+        self.rect = self.image.get_rect(center = (rect))
+
 while True:
-    print("is this working?")
 
     p2 = n.send(p)
-    print("Maybe?")
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            shooting = True
-            if ammo > 0:
-                p.create_bullet()
-                bullet_sound.play()
-                ammo -= 1
+    player = Convert(ship_image, p.angle, p.rect)
+    player2 = Convert(ship_image, p2.angle, p2.rect)
+    if game_active:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                p.have_shot = True
+                if ammo > 0:
+                    p.create_bullet()
+                    bullet_sound.play()
+                    ammo -= 1
 
 
-        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            shooting = False
+            elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                p.have_shot = False
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                moving = True
-        elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_SPACE:
-                moving = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    p.moving = True
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    p.moving = False
 
     if ammo < 4:
         bullet_time += 1
         if bullet_time % 60 == 0:
             ammo += 1
 
-    if moving:
+    if p.moving:
         p.move()
     else:
         p.r = 0
 
 
     screen.blit(bg, (0, 0))
-    screen.blit(p.image, p.rect)
-    screen.blit(p2.image, p2.rect)
+    screen.blit(player.image, player.rect)
+    screen.blit(player2.image, player2.rect)
 
 
 
     for i in range(len(p.bullet_group)):
-        screen.blit(p.bullet_group[i], p.bullet_group[i].rect)
-        p.bullet_group[i].bullet_update()
-        if p.bullet_group[i].colliderect(p2.rect):
-            p2.health -= 1
-            p2.image = damaged_ship_image
-        if p.bullet_group[i].rect.x >= screen_height + 200 or p.bullet_group[i].rect.y >= 200:
-            del p.bullet_group[i]
+        converted_list.append(Convert(bullet_image, p.bullet_group[i].angle, p.bullet_group[i].rect))
+        screen.blit(converted_list[i].image, converted_list[i].rect)
 
+
+    for i in range(len(converted_list)):
+        p.bullet_group[i].bullet_update()
+        if converted_list[i].rect.colliderect(player2.rect):
+            p2.health -= 1
+            player2.image = damaged_ship_image
+            del p.bullet_group[i]
+            del converted_list[i]
+            break
+
+
+
+        #if converted_list[i].rect.x >= screen_height + 200 or converted_list[i].rect.y >= 200:
+        #    del p.bullet_group[i]
     for i in range(len(p2.bullet_group)):
-        screen.blit(p2.bullet_group[i], p2.bullet_group[i].rect)
+        converted_list2.append(Convert(bullet_image, p2.bullet_group[i].angle, p2.bullet_group[i].rect))
+        screen.blit(converted_list2[i].image, converted_list2[i].rect)
+
+
+    for i in range(len(converted_list2)):
         p2.bullet_group[i].bullet_update()
-        if p2.bullet_group[i].colliderect(p.rect):
+        if converted_list2[i].rect.colliderect(player.rect):
             p.health -= 1
-            p.image = damaged_ship_image
-        if p2.bullet_group[i].rect.x >= screen_height + 200 or p2.bullet_group[i].rect.y >= 200:
+            player.image = damaged_ship_image
             del p2.bullet_group[i]
+            del converted_list2[i]
+            break
+
+        #if converted_list2[i].rect.x >= screen_height + 200 or converted_list2[i].rect.y >= 200:
+        #    del p2.bullet_group[i]
 
     if ammo == 4:
         screen.blit(full_energy, (-100, -200))
@@ -132,7 +160,17 @@ while True:
 
     screen.blit(health_list[p.health], (-91, -130))
 
-    p.update()
-    p2.update()
+    if p.health == 0:
+        screen.blit(my_font.render('You lose!', False, (0, 0, 205)), (screen_width / 2, screen_height / 2))
+        game_active = False
+
+    if p2.health == 0:
+        screen.blit(my_font.render('You Win!', False, (255, 0, 0)), (screen_width / 2, screen_height / 2))
+        game_active = False
+
+    p.update(p.moving)
+    p2.update(p2.moving)
+    converted_list = []
+    converted_list2 = []
     pygame.display.update()
     clock.tick(60)
